@@ -1,10 +1,15 @@
 package com.halfacode.controller;
 
+import com.halfacode.dto.ApiResponse;
+import com.halfacode.dto.ProductDTO;
 import com.halfacode.entity.Category;
 import com.halfacode.entity.Product;
+import com.halfacode.exception.CustomException;
 import com.halfacode.service.CategoryService;
 import com.halfacode.service.ImageService;
 import com.halfacode.service.ProductService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,26 +30,33 @@ public class ProductController {
         this.categoryService = categoryService;
     }
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
-    }
+    public List<ProductDTO> getAllProducts() {
+        ApiResponse<List<ProductDTO>> response = productService.getAllProducts();
 
+        if (response.getStatus() == HttpStatus.OK.value()) {
+            return response.getPayload();
+        } else {
+            throw new CustomException(response.getError());
+        }
+    }
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Long id) {
-        return productService.getProductById(id);
+    public ApiResponse<ProductDTO> getProductById(@PathVariable Long id) {
+        ApiResponse<ProductDTO> response = productService.getProductById(id);
+
+        // You can further customize the response if needed
+        return response;
     }
 
     @PostMapping
-    public Product createProduct(@RequestParam("file") MultipartFile imageFile, @RequestParam("name") String name, @RequestParam("categoryId") Long categoryId) throws IOException, IOException {
-        String imageName = imageService.saveFile(name,imageFile);
-        Category category = categoryService.getCategoryById(categoryId);
-        Product product = new Product();
-        product.setName(name);
-        product.setCategory(category);
-        product.setImageName(imageName);
-        return productService.createProduct(product);
-    }
+    public ResponseEntity<ApiResponse<ProductDTO>> createProduct(@ModelAttribute ProductDTO productDTO, @RequestParam("imageFile") MultipartFile imageFile) {
+        ApiResponse<ProductDTO> response = productService.createProduct(productDTO, imageFile);
 
+        if (response.getStatus() == HttpStatus.OK.value()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(response.getStatus()).body(response);
+        }
+    }
     @PutMapping("/{id}")
     public Product updateProduct(@PathVariable Long id, @RequestBody Product product) {
         product.setId(id);

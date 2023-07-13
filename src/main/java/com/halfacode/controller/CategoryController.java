@@ -24,19 +24,19 @@ public class CategoryController {
         return categoryService.getAllCategories();
     }
 
-    @GetMapping("/{id}")
+   /* @GetMapping("/{id}")
     public Category getCategoryById(@PathVariable Long id) {
         return categoryService.getCategoryById(id);
     }
-
-    @PostMapping
+*/
+  /*  @PostMapping
     public Category createCategory(@RequestParam("file") MultipartFile imageFile ,@RequestParam("name") String name) throws IOException {
         String imageName = imageService.saveFile(name,imageFile);
         Category category = new Category();
         category.setName(name);
         category.setImageName(imageName);
         return categoryService.createCategory(category);
-    }
+    }*/
 
     @PutMapping("/{id}")
     public Category updateCategory(@PathVariable Long id, @RequestBody Category category) {

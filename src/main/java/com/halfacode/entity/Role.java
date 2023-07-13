@@ -9,18 +9,12 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderItem {
+public class Role {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
-    /*@ManyToOne
-   // @JoinColumn(name = "order_id")
-    private Order order;
-
-    @ManyToOne
-    private Product product;*/
-
-    private int quantity;
-
+    @Column(length = 60)
+    private String name;
 }

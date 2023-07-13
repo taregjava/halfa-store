@@ -21,4 +21,7 @@ public class Category {
 
     private String imageName;
 
+    public Category(Long categoryId) {
+        this.id=categoryId;
+    }
 }
