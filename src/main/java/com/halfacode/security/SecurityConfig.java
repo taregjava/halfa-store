@@ -62,7 +62,26 @@ public class SecurityConfig {
         http.csrf().disable()
                 .authorizeHttpRequests((authorize) ->
                         //authorize.anyRequest().authenticated()
-                        authorize.requestMatchers( "/api/**", String.valueOf(AUTH_WHITELIST)).permitAll()
+                        authorize.requestMatchers(  "/swagger-resources",
+                                        "/swagger-resources/**",
+                                        "/configuration/ui",
+                                        "/configuration/security",
+                                        "/swagger-ui.html",
+                                        "/swagger-ui/**",
+                                        "/webjars/**",
+                                        "/v3/api-docs/**",
+                                        "/api/public/**",
+                                        "/api/categories/**",
+                                        "/path/to/images/**",
+                                        "/api/products/**",
+                                        "api/users/**",
+                                        "/api/car/**",
+                                        "/api/shipments/**",
+                                        "api/orders/**",
+                                        "/api/public/authenticate",
+                                        "/actuator/*",
+
+                                "/api/**").permitAll()
                                 //.requestMatchers(HttpMethod.GET,AUTH_WHITELIST).permitAll()
                                 .requestMatchers("/api/auth/**").permitAll()
                                 .anyRequest().authenticated()

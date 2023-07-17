@@ -9,14 +9,19 @@ import com.halfacode.exception.ProductNotFoundException;
 import com.halfacode.mapper.ProductMapper;
 import com.halfacode.repoistory.CategoryRepository;
 import com.halfacode.repoistory.ProductRepository;
+import com.halfacode.specifiaction.ProductSpecifications;
+import com.halfacode.util.HalfaStoreUtility;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -38,7 +43,7 @@ public class ProductService {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ProductNotFoundException("Product not found"));
 
-            ProductDTO productDTO = productMapper.mapEntityToDto(product);
+            ProductDTO productDTO = productMapper.buildProductDTO(product);
 
             return new ApiResponse<>(HttpStatus.OK.value(), productDTO, null, LocalDateTime.now());
         } catch (ProductNotFoundException ex) {
@@ -47,13 +52,6 @@ public class ProductService {
             return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while retrieving the product", LocalDateTime.now());
         }
     }
-    // Existing methods...
-
-   /* public List<Product> getProductsByCategory(Long categoryId) {
-        Category category = categoryService.findById(categoryId)
-                .orElseThrow(() -> new NoSuchElementException("Category not found"));
-        return productRepository.findByCategory(category);
-    }*/
 
     public ApiResponse<List<ProductDTO>> getAllProducts() {
         try {
@@ -65,6 +63,7 @@ public class ProductService {
             return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while retrieving the products", LocalDateTime.now());
         }
     }
+
     public ApiResponse<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile imageFile) {
         try {
             ApiResponse<String> imageResponse = imageService.saveFile(productDTO.getName(), imageFile);
@@ -78,20 +77,60 @@ public class ProductService {
             }
             CategoryDTO categoryDTO = categoryResponse.getPayload();
             Product product = productMapper.mapDtoToEntity(productDTO);
+            float discountPercent = HalfaStoreUtility.calculateDiscountPercent(productDTO.getCost(), productDTO.getPrice());
+            product.setDiscountPercent(discountPercent);
             Product createdProduct = productRepository.save(product);
             ProductDTO createdProductDTO = productMapper.mapEntityToDto(createdProduct);
-
-            return new ApiResponse<>(HttpStatus.OK.value(), createdProductDTO, "Product created successfully", LocalDateTime.now());
+            createdProductDTO.setImageName(imageName);
+            return new ApiResponse<>(HttpStatus.OK.value(), createdProductDTO, LocalDateTime.now());
         } catch (Exception ex) {
             return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while creating the product", LocalDateTime.now());
         }
     }
 
-    public Product updateProduct(Product product) {
-        return productRepository.save(product);
+    public ApiResponse<ProductDTO> updateProduct(ProductDTO productDTO, MultipartFile imageFile) {
+        Optional<Product> productOptional = productRepository.findById(productDTO.getId());
+
+        if (!productOptional.isPresent()) {
+            return new ApiResponse<>("Product not found", null);
+        }
+        Product product = productOptional.get();
+        // Update the product fields based on the provided productDTO
+        product = productMapper.updateEntity(product, productDTO);
+
+        // Update the image file if provided
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                ApiResponse<String> imageResponse = imageService.saveFile(productDTO.getName(), imageFile);
+                if (imageResponse.getStatus() != HttpStatus.OK.value()) {
+                    return new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getError(), LocalDateTime.now());
+                }
+                String imageName = imageResponse.getPayload();
+                product.setImageName(imageName); // Update the image name in the product
+            } catch (IOException e) {
+                return new ApiResponse<>( "Failed to update product image", null);
+            }
+        }
+
+        Product updatedProduct = productRepository.save(product);
+        ProductDTO updatedProductDTO = productMapper.mapEntityToDto(updatedProduct);
+        return new ApiResponse<>(HttpStatus.OK.value(), updatedProductDTO, LocalDateTime.now());
+      //  return new ApiResponse<>("Product updated successfully",null);
     }
 
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
+    }
+
+    public List<ProductDTO> searchProducts(ProductDTO searchCriteria) {
+        Specification<Product> spec = Specification.where(null);
+
+        if (searchCriteria.getName() != null) {
+            spec = spec.and(ProductSpecifications.hasName(searchCriteria.getName()));
+        }
+        // Add other specifications based on your criteria
+
+        List<Product> products = productRepository.findAll(spec);
+        return productMapper.mapEntityListToDtoList(products);
     }
 }

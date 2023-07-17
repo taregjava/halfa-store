@@ -47,5 +47,7 @@ public class Product {
    /* @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;*/
-
+   public Long getCategoryId() {
+       return category != null ? category.getId() : null;
+   }
 }

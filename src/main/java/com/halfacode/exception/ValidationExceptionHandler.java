@@ -51,7 +51,7 @@ public class ValidationExceptionHandler {
             apiResponse.setError("Validation error");
             apiResponse.setTimestamp(LocalDateTime.now());
             apiResponse.setPayload(null);
-            apiResponse.setErrors(errors);
+          //  apiResponse.setErrors(errors);
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
         }
@@ -70,7 +70,7 @@ public class ValidationExceptionHandler {
             apiResponse.setError("Validation error");
             apiResponse.setTimestamp(LocalDateTime.now());
             apiResponse.setPayload(null);
-            apiResponse.setErrors(errors);
+           // apiResponse.setErrors(errors);
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
         }
@@ -82,7 +82,7 @@ public class ValidationExceptionHandler {
             apiResponse.setError("Validation error");
             apiResponse.setTimestamp(LocalDateTime.now());
             apiResponse.setPayload(null);
-            apiResponse.getErrors().add(ex.getMessage());
+           // apiResponse.getErrors().add(ex.getMessage());
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
         }

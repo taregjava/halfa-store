@@ -1,16 +1,43 @@
 package com.halfacode.mapper;
+import com.halfacode.dto.ApiResponse;
+import com.halfacode.dto.CategoryDTO;
 import com.halfacode.dto.ProductDTO;
 import com.halfacode.entity.Category;
 import com.halfacode.entity.Product;
+import com.halfacode.repoistory.CategoryRepository;
+import com.halfacode.service.CategoryService;
 import io.micrometer.common.util.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 public class ProductMapper {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    public static ProductDTO buildProductDTO(Product productEntity) {
+        return ProductDTO.builder()
+                .id(productEntity.getId())
+                .name(productEntity.getName())
+                .categoryId(productEntity.getCategoryId())
+                .imageName(productEntity.getImageName())
+                .fullDescription(productEntity.getFullDescription())
+                .createdTime(productEntity.getCreatedTime())
+                .updatedTime(productEntity.getUpdatedTime())
+                .enabled(productEntity.isEnabled())
+                .inStock(productEntity.isInStock())
+                .cost(productEntity.getCost())
+                .price(productEntity.getPrice())
+                .discountPercent(productEntity.getDiscountPercent())
+                .build();
+    }
 
     public Product mapDtoToEntity(ProductDTO dto) {
 
@@ -22,8 +49,8 @@ public class ProductMapper {
         entity.setCategory(new Category(dto.getCategoryId()));
         entity.setImageName(dto.getImageName());
         entity.setFullDescription(dto.getFullDescription());
-        entity.setCreatedTime(dto.getCreatedTime());
-        entity.setUpdatedTime(dto.getUpdatedTime());
+        entity.setCreatedTime(new Date());
+        entity.setUpdatedTime(new Date());
         entity.setEnabled(dto.isEnabled());
         entity.setInStock(dto.isInStock());
         entity.setCost(dto.getCost());
@@ -58,7 +85,54 @@ public class ProductMapper {
 
         return dto;
     }
+    public Product updateEntity(Product entity, ProductDTO dto) {
+        // Update other fields from DTO to entity
 
+
+        entity.setName(dto.getName());
+        // entity.setCategory(dto.getCategoryId());
+        entity.setImageName(dto.getImageName());
+        entity.setFullDescription(dto.getFullDescription());
+        entity.setUpdatedTime(dto.getUpdatedTime());
+        entity.setEnabled(dto.isEnabled());
+        entity.setInStock(dto.isInStock());
+        entity.setCost(dto.getCost());
+        entity.setPrice(dto.getPrice());
+        entity.setDiscountPercent(dto.getDiscountPercent());
+
+        entity.setName(dto.getName());
+        entity.setImageName(dto.getImageName());
+        entity.setFullDescription(dto.getFullDescription());
+        entity.setUpdatedTime(dto.getUpdatedTime());
+        entity.setEnabled(dto.isEnabled());
+        entity.setInStock(dto.isInStock());
+        entity.setCost(dto.getCost());
+        entity.setPrice(dto.getPrice());
+        entity.setDiscountPercent(dto.getDiscountPercent());
+
+        // Update category if categoryId is provided
+        if (dto.getCategoryId() != null) {
+            ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(dto.getCategoryId());
+            if (categoryResponse.isSuccessful()) {
+                CategoryDTO categoryDTO = categoryResponse.getPayload();
+                Category category = convertToCategory(categoryDTO);
+                entity.setCategory(category);
+            } else {
+                // Handle the unsuccessful response (e.g., logging, error handling)
+            }
+        }
+
+        return entity;
+    }
+
+    private Category convertToCategory(CategoryDTO categoryDTO) {
+        Category category = new Category();
+        category.setId(categoryDTO.getId());
+        category.setName(categoryDTO.getName());
+        // Set other properties as needed
+
+        return category;
+    }
     private void validateProductDto(ProductDTO dto) {
         Assert.notNull(dto, "ProductDTO must not be null");
         Assert.isTrue(StringUtils.isNotBlank(dto.getName()), "Product name must not be blank");
@@ -80,4 +154,6 @@ public class ProductMapper {
         // Assert.isTrue(entity.getPrice() > 0, "Price must be greater than zero");
         // Assert.isTrue(entity.getDiscountPercent() >= 0 && entity.getDiscountPercent() <= 100, "Discount percent must be between 0 and 100");
     }
+
+
 }
