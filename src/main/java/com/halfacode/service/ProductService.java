@@ -3,14 +3,14 @@ package com.halfacode.service;
 import com.halfacode.dto.ApiResponse;
 import com.halfacode.dto.CategoryDTO;
 import com.halfacode.dto.ProductDTO;
-import com.halfacode.entity.Category;
 import com.halfacode.entity.Product;
 import com.halfacode.exception.ProductNotFoundException;
 import com.halfacode.mapper.ProductMapper;
-import com.halfacode.repoistory.CategoryRepository;
 import com.halfacode.repoistory.ProductRepository;
 import com.halfacode.specifiaction.ProductSpecifications;
 import com.halfacode.util.HalfaStoreUtility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -19,23 +19,25 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ProductService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductService.class);
     private final ProductMapper productMapper;
     private final ProductRepository productRepository;
-    private final ImageService imageService;
     private final CategoryService categoryService;
-
+    private final S3Service s3Service;
     @Autowired
-    public ProductService(ProductMapper productMapper, ProductRepository productRepository, ImageService imageService, CategoryService categoryService) {
+    public ProductService(ProductMapper productMapper, ProductRepository productRepository, ImageService imageService, CategoryService categoryService, S3Service s3Service) {
         this.productMapper = productMapper;
         this.productRepository = productRepository;
-        this.imageService = imageService;
         this.categoryService = categoryService;
+        this.s3Service = s3Service;
     }
 
     public ApiResponse<ProductDTO> getProductById(Long productId) {
@@ -56,21 +58,32 @@ public class ProductService {
     public ApiResponse<List<ProductDTO>> getAllProducts() {
         try {
             List<Product> products = productRepository.findAll();
-            List<ProductDTO> productDTOs = productMapper.mapEntityListToDtoList(products);
+            List<ProductDTO> productDTOs = new ArrayList<>();
+
+            for (Product product : products) {
+                ProductDTO productDTO = productMapper.mapEntityToDto(product);
+
+                // Retrieve image data for the product from S3
+                String imageData = s3Service.getImageUrl(product.getName());
+                productDTO.setImageName(imageData);
+
+                productDTOs.add(productDTO);
+            }
 
             return new ApiResponse<>(HttpStatus.OK.value(), productDTOs, null, LocalDateTime.now());
         } catch (Exception ex) {
             return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while retrieving the products", LocalDateTime.now());
         }
     }
-
     public ApiResponse<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile imageFile) {
         try {
-            ApiResponse<String> imageResponse = imageService.saveFile(productDTO.getName(), imageFile);
+            // Upload the image file to S3
+            ApiResponse<String> imageResponse = s3Service.uploadFile("images", productDTO.getName(), imageFile.getInputStream());
             if (imageResponse.getStatus() != HttpStatus.OK.value()) {
                 return new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getError(), LocalDateTime.now());
             }
             String imageName = imageResponse.getPayload();
+
             ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(productDTO.getCategoryId());
             if (categoryResponse.getStatus() != HttpStatus.OK.value()) {
                 return new ApiResponse<>(categoryResponse.getStatus(), null, categoryResponse.getError(), LocalDateTime.now());
@@ -83,39 +96,45 @@ public class ProductService {
             ProductDTO createdProductDTO = productMapper.mapEntityToDto(createdProduct);
             createdProductDTO.setImageName(imageName);
             return new ApiResponse<>(HttpStatus.OK.value(), createdProductDTO, LocalDateTime.now());
+        } catch (IOException ex) {
+            LOGGER.error("An error occurred while reading the image file", ex);
+            return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while reading the image file", LocalDateTime.now());
         } catch (Exception ex) {
+            LOGGER.error("An error occurred while creating the product", ex);
             return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while creating the product", LocalDateTime.now());
         }
     }
 
-    public ApiResponse<ProductDTO> updateProduct(ProductDTO productDTO, MultipartFile imageFile) {
-        Optional<Product> productOptional = productRepository.findById(productDTO.getId());
-
-        if (!productOptional.isPresent()) {
-            return new ApiResponse<>("Product not found", null);
-        }
-        Product product = productOptional.get();
-        // Update the product fields based on the provided productDTO
-        product = productMapper.updateEntity(product, productDTO);
-
-        // Update the image file if provided
-        if (imageFile != null && !imageFile.isEmpty()) {
-            try {
-                ApiResponse<String> imageResponse = imageService.saveFile(productDTO.getName(), imageFile);
-                if (imageResponse.getStatus() != HttpStatus.OK.value()) {
-                    return new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getError(), LocalDateTime.now());
-                }
-                String imageName = imageResponse.getPayload();
-                product.setImageName(imageName); // Update the image name in the product
-            } catch (IOException e) {
-                return new ApiResponse<>( "Failed to update product image", null);
+    public ApiResponse<ProductDTO> updateProduct(Long productId, ProductDTO productDTO, MultipartFile imageFile) {
+        try {
+            // Retrieve the existing product from the database
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+            if (optionalProduct.isEmpty()) {
+                return new ApiResponse<>(HttpStatus.NOT_FOUND.value(), null, "Product not found", LocalDateTime.now());
             }
-        }
+            Product existingProduct = optionalProduct.get();
 
-        Product updatedProduct = productRepository.save(product);
-        ProductDTO updatedProductDTO = productMapper.mapEntityToDto(updatedProduct);
-        return new ApiResponse<>(HttpStatus.OK.value(), updatedProductDTO, LocalDateTime.now());
-      //  return new ApiResponse<>("Product updated successfully",null);
+            // Update product fields from the DTO using the mapper
+            productMapper.updateEntity(existingProduct, productDTO);
+
+            // If an image file is provided, upload it to S3 and update the image name
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String imageName = s3Service.uploadFile("images", productDTO.getName(), imageFile.getInputStream()).getPayload();
+                existingProduct.setImageName(imageName);
+            }
+
+            // Save the updated product entity
+            Product updatedProduct = productRepository.save(existingProduct);
+            ProductDTO updatedProductDTO = productMapper.mapEntityToDto(updatedProduct);
+
+            return new ApiResponse<>(HttpStatus.OK.value(), updatedProductDTO, null, LocalDateTime.now());
+        } catch (IOException ex) {
+            LOGGER.error("An error occurred while reading the image file", ex);
+            return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while reading the image file", LocalDateTime.now());
+        } catch (Exception ex) {
+            LOGGER.error("An error occurred while updating the product", ex);
+            return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while updating the product", LocalDateTime.now());
+        }
     }
 
     public void deleteProduct(Long id) {
@@ -133,4 +152,6 @@ public class ProductService {
         List<Product> products = productRepository.findAll(spec);
         return productMapper.mapEntityListToDtoList(products);
     }
+
+
 }

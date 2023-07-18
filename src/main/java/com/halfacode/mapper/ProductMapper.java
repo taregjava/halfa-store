@@ -8,9 +8,12 @@ import com.halfacode.repoistory.CategoryRepository;
 import com.halfacode.service.CategoryService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -51,11 +54,11 @@ public class ProductMapper {
         entity.setFullDescription(dto.getFullDescription());
         entity.setCreatedTime(new Date());
         entity.setUpdatedTime(new Date());
-        entity.setEnabled(dto.isEnabled());
-        entity.setInStock(dto.isInStock());
+        entity.setEnabled(dto.getEnabled());
+        entity.setInStock(dto.getInStock());
         entity.setCost(dto.getCost());
         entity.setPrice(dto.getPrice());
-        entity.setDiscountPercent(dto.getDiscountPercent());
+        entity.setDiscountPercent(dto.getDiscountPercent() != null ? dto.getDiscountPercent().floatValue() : 0.0f);
 
         return entity;
     }
@@ -67,6 +70,7 @@ public class ProductMapper {
     }
     public static  ProductDTO  mapEntityToDto(Product entity) {
 
+        try {
         validateProductEntity(entity);
 
         ProductDTO dto = new ProductDTO();
@@ -84,47 +88,59 @@ public class ProductMapper {
         dto.setDiscountPercent(entity.getDiscountPercent());
 
         return dto;
-    }
-    public Product updateEntity(Product entity, ProductDTO dto) {
-        // Update other fields from DTO to entity
+        } catch (IllegalArgumentException ex) {
+            // Catch any validation errors and return an appropriate error response
+            throw new RuntimeException("Validation error: " + ex.getMessage());
 
 
-        entity.setName(dto.getName());
-        // entity.setCategory(dto.getCategoryId());
-        entity.setImageName(dto.getImageName());
-        entity.setFullDescription(dto.getFullDescription());
-        entity.setUpdatedTime(dto.getUpdatedTime());
-        entity.setEnabled(dto.isEnabled());
-        entity.setInStock(dto.isInStock());
-        entity.setCost(dto.getCost());
-        entity.setPrice(dto.getPrice());
-        entity.setDiscountPercent(dto.getDiscountPercent());
-
-        entity.setName(dto.getName());
-        entity.setImageName(dto.getImageName());
-        entity.setFullDescription(dto.getFullDescription());
-        entity.setUpdatedTime(dto.getUpdatedTime());
-        entity.setEnabled(dto.isEnabled());
-        entity.setInStock(dto.isInStock());
-        entity.setCost(dto.getCost());
-        entity.setPrice(dto.getPrice());
-        entity.setDiscountPercent(dto.getDiscountPercent());
-
-        // Update category if categoryId is provided
-        if (dto.getCategoryId() != null) {
-            ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(dto.getCategoryId());
-            if (categoryResponse.isSuccessful()) {
-                CategoryDTO categoryDTO = categoryResponse.getPayload();
-                Category category = convertToCategory(categoryDTO);
-                entity.setCategory(category);
-            } else {
-                // Handle the unsuccessful response (e.g., logging, error handling)
-            }
         }
-
-        return entity;
     }
 
+  public Product updateEntity(Product entity, ProductDTO dto) {
+      // Update fields from DTO to entity if they are present in the DTO
+
+      if (dto.getName() != null) {
+          entity.setName(dto.getName());
+      }
+      if (dto.getImageName() != null) {
+          entity.setImageName(dto.getImageName());
+      }
+      if (dto.getFullDescription() != null) {
+          entity.setFullDescription(dto.getFullDescription());
+      }
+      if (dto.getUpdatedTime() != null) {
+          entity.setUpdatedTime(dto.getUpdatedTime());
+      }
+      if (dto.getEnabled() != null) {
+          entity.setEnabled(dto.getEnabled());
+      }
+      if (dto.getInStock() != null) {
+          entity.setInStock(dto.getInStock());
+      }
+      if (dto.getCost() != null) {
+          entity.setCost(dto.getCost());
+      }
+      if (dto.getPrice() != null) {
+          entity.setPrice(dto.getPrice());
+      }
+      if (dto.getDiscountPercent() != null) {
+          entity.setDiscountPercent(dto.getDiscountPercent());
+      }
+
+      // Update category if categoryId is provided
+      if (dto.getCategoryId() != null) {
+          ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(dto.getCategoryId());
+          if (categoryResponse.isSuccessful()) {
+              CategoryDTO categoryDTO = categoryResponse.getPayload();
+              Category category = convertToCategory(categoryDTO);
+              entity.setCategory(category);
+          } else {
+              // Handle the unsuccessful response (e.g., logging, error handling)
+          }
+      }
+
+      return entity;
+  }
     private Category convertToCategory(CategoryDTO categoryDTO) {
         Category category = new Category();
         category.setId(categoryDTO.getId());

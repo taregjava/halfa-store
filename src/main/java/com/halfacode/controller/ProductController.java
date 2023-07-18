@@ -61,19 +61,15 @@ public class ProductController {
         }
     }
     @PutMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(@PathVariable Long productId,
-                                                                 @RequestBody ProductDTO productDTO,
-                                                                 @RequestParam("imageFile") MultipartFile imageFile) {
-        productDTO.setId(productId);
-        ApiResponse<ProductDTO> response = productService.updateProduct(productDTO, imageFile);
+    public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(@PathVariable Long productId, @ModelAttribute ProductDTO productDTO, @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+        ApiResponse<ProductDTO> response = productService.updateProduct(productId, productDTO, imageFile);
 
-        if (response.isSuccessful()) {
+        if (response.getStatus() == HttpStatus.OK.value()) {
             return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            return ResponseEntity.status(response.getStatus()).body(response);
         }
     }
-
     @DeleteMapping("/{id}")
     public void deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);

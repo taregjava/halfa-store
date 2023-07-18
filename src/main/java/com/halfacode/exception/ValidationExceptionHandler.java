@@ -26,7 +26,12 @@ public class ValidationExceptionHandler {
         response.setTimestamp(LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
-
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleValidationException(IllegalArgumentException ex) {
+        // Create a custom ApiResponse with the validation error message and HTTP status code
+        ApiResponse<Object> response = new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), null, ex.getMessage(), LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException ex) {
         ApiResponse<Void> response = new ApiResponse<>();
