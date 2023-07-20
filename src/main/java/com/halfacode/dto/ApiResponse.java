@@ -1,5 +1,6 @@
 package com.halfacode.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.halfacode.entity.Product;
 import com.halfacode.entity.Shipment;
 import lombok.AllArgsConstructor;
@@ -10,29 +11,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class ApiResponse<T> {
     private int status;
     private T payload;
     private String error;
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
     private LocalDateTime timestamp;
-   // private List<String> errors;
-    private boolean success;
+
 
     public ApiResponse(String error,T payload) {
         this.error = error;
         this.payload = payload;
     }
 
-    public ApiResponse(boolean b, String product_updated_successfully, T payload) {
-        this.success=b;
-        this.error= product_updated_successfully;
-        this.payload = payload;
-    }
-
     public boolean isSuccessful() {
-        return success;
+        return status >= 200 && status < 300;
     }
     public ApiResponse(int status, T payload, String error, LocalDateTime timestamp) {
         this.status = status;
@@ -52,5 +46,16 @@ public class ApiResponse<T> {
         this.payload = payload;
         this.timestamp = now;
 
+    }
+    public String getTimestampAsString() {
+        return "[" +
+                timestamp.getYear() + "," +
+                timestamp.getMonthValue() + "," +
+                timestamp.getDayOfMonth() + "," +
+                timestamp.getHour() + "," +
+                timestamp.getMinute() + "," +
+                timestamp.getSecond() + "," +
+                timestamp.getNano() +
+                "]";
     }
 }

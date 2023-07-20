@@ -3,6 +3,7 @@ package com.halfacode.service;
 import com.halfacode.dto.ApiResponse;
 import com.halfacode.dto.CategoryDTO;
 import com.halfacode.dto.ProductDTO;
+import com.halfacode.entity.Category;
 import com.halfacode.entity.Product;
 import com.halfacode.exception.ProductNotFoundException;
 import com.halfacode.mapper.ProductMapper;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -58,17 +60,13 @@ public class ProductService {
     public ApiResponse<List<ProductDTO>> getAllProducts() {
         try {
             List<Product> products = productRepository.findAll();
-            List<ProductDTO> productDTOs = new ArrayList<>();
-
-            for (Product product : products) {
-                ProductDTO productDTO = productMapper.mapEntityToDto(product);
-
-                // Retrieve image data for the product from S3
-                String imageData = s3Service.getImageUrl(product.getName());
-                productDTO.setImageName(imageData);
-
-                productDTOs.add(productDTO);
-            }
+            List<ProductDTO> productDTOs = products.stream()
+                    .map(product -> productMapper.buildProductDTO(product))
+                    .peek(productDTO -> {
+                        String imageData = s3Service.getImageUrl(productDTO.getName());
+                        productDTO.setImageName(imageData);
+                    })
+                    .collect(Collectors.toList());
 
             return new ApiResponse<>(HttpStatus.OK.value(), productDTOs, null, LocalDateTime.now());
         } catch (Exception ex) {
@@ -78,23 +76,20 @@ public class ProductService {
     public ApiResponse<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile imageFile) {
         try {
             // Upload the image file to S3
-            ApiResponse<String> imageResponse = s3Service.uploadFile("images", productDTO.getName(), imageFile.getInputStream());
-            if (imageResponse.getStatus() != HttpStatus.OK.value()) {
+            ApiResponse<String> imageResponse = uploadImageToS3(productDTO, imageFile);
+            if (!imageResponse.isSuccessful()) {
                 return new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getError(), LocalDateTime.now());
             }
             String imageName = imageResponse.getPayload();
 
-            ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(productDTO.getCategoryId());
-            if (categoryResponse.getStatus() != HttpStatus.OK.value()) {
-                return new ApiResponse<>(categoryResponse.getStatus(), null, categoryResponse.getError(), LocalDateTime.now());
+            ApiResponse<CategoryDTO> categoryResponse = getCategoryById(productDTO.getCategoryId());
+            if (!categoryResponse.isSuccessful()) {
+                String errorMessage = "Invalid category ID: " + (productDTO.getCategoryId() != null ? productDTO.getCategoryId() : "null");
+                return new ApiResponse<>(categoryResponse.getStatus(), null, errorMessage, LocalDateTime.now());
             }
             CategoryDTO categoryDTO = categoryResponse.getPayload();
-            Product product = productMapper.mapDtoToEntity(productDTO);
-            float discountPercent = HalfaStoreUtility.calculateDiscountPercent(productDTO.getCost(), productDTO.getPrice());
-            product.setDiscountPercent(discountPercent);
-            Product createdProduct = productRepository.save(product);
+            Product createdProduct = saveProduct(productDTO, imageName);
             ProductDTO createdProductDTO = productMapper.mapEntityToDto(createdProduct);
-            createdProductDTO.setImageName(imageName);
             return new ApiResponse<>(HttpStatus.OK.value(), createdProductDTO, LocalDateTime.now());
         } catch (IOException ex) {
             LOGGER.error("An error occurred while reading the image file", ex);
@@ -153,5 +148,48 @@ public class ProductService {
         return productMapper.mapEntityListToDtoList(products);
     }
 
+    public ApiResponse<List<ProductDTO>> getProductsByCategory(Long categoryId) {
+        try {
+            ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(categoryId);
+            if (categoryResponse.getStatus() != HttpStatus.OK.value()) {
+                return new ApiResponse<>(categoryResponse.getStatus(), null, categoryResponse.getError(), LocalDateTime.now());
+            }
 
+            CategoryDTO categoryDTO = categoryResponse.getPayload();
+            Category category = ProductMapper.convertToCategory(categoryDTO);
+
+            List<Product> products = productRepository.findByCategory(category);
+            List<ProductDTO> productDTOs = productMapper.mapEntityListToDtoList(products);
+
+            return new ApiResponse<>(HttpStatus.OK.value(), productDTOs, null, LocalDateTime.now());
+        } catch (Exception ex) {
+            return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while retrieving products by category", LocalDateTime.now());
+        }
+    }
+    public ApiResponse<List<ProductDTO>> getProductsByAllCtegory() {
+        try {
+
+            List<Product> products = productRepository.findByCategory();
+            List<ProductDTO> productDTOs = productMapper.mapEntityListToDtoList(products);
+
+            return new ApiResponse<>(HttpStatus.OK.value(), productDTOs, null, LocalDateTime.now());
+        } catch (Exception ex) {
+            return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while retrieving products by category", LocalDateTime.now());
+        }
+    }
+    private ApiResponse<String> uploadImageToS3(ProductDTO productDTO, MultipartFile imageFile) throws IOException {
+        return s3Service.uploadFile("images", productDTO.getName(), imageFile.getInputStream());
+    }
+
+    private ApiResponse<CategoryDTO> getCategoryById(Long categoryId) {
+        return categoryService.getCategoryById(categoryId);
+    }
+
+    private Product saveProduct(ProductDTO productDTO, String imageName) {
+        Product product = productMapper.mapDtoToEntity(productDTO);
+        float discountPercent = HalfaStoreUtility.calculateDiscountPercent(productDTO.getCost(), productDTO.getPrice());
+        product.setDiscountPercent(discountPercent);
+        product.setImageName(imageName);
+        return productRepository.save(product);
+    }
 }

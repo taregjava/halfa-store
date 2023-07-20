@@ -33,14 +33,8 @@ public class ProductController {
         this.categoryService = categoryService;
     }
     @GetMapping
-    public List<ProductDTO> getAllProducts() {
-        ApiResponse<List<ProductDTO>> response = productService.getAllProducts();
-
-        if (response.getStatus() == HttpStatus.OK.value()) {
-            return response.getPayload();
-        } else {
-            throw new CustomException(response.getError());
-        }
+    public ApiResponse<List<ProductDTO>> getAllProducts() {
+        return productService.getAllProducts();
     }
     @GetMapping("/{id}")
     public ApiResponse<ProductDTO> getProductById(@PathVariable Long id) {
@@ -88,4 +82,14 @@ public class ProductController {
             return ResponseEntity.ok(response);
         }
 
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByCategory(@PathVariable Long categoryId) {
+        ApiResponse<List<ProductDTO>> response = productService.getProductsByCategory(categoryId);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
+    }
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByAllCtegory() {
+        ApiResponse<List<ProductDTO>> response = productService.getProductsByAllCtegory();
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
+    }
 }

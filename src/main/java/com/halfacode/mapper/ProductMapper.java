@@ -4,19 +4,13 @@ import com.halfacode.dto.CategoryDTO;
 import com.halfacode.dto.ProductDTO;
 import com.halfacode.entity.Category;
 import com.halfacode.entity.Product;
-import com.halfacode.repoistory.CategoryRepository;
 import com.halfacode.service.CategoryService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -141,7 +135,7 @@ public class ProductMapper {
 
       return entity;
   }
-    private Category convertToCategory(CategoryDTO categoryDTO) {
+    public static Category convertToCategory(CategoryDTO categoryDTO) {
         Category category = new Category();
         category.setId(categoryDTO.getId());
         category.setName(categoryDTO.getName());

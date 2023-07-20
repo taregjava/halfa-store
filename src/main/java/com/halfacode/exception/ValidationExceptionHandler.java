@@ -29,7 +29,7 @@ public class ValidationExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationException(IllegalArgumentException ex) {
         // Create a custom ApiResponse with the validation error message and HTTP status code
-        ApiResponse<Object> response = new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), null, ex.getMessage(), LocalDateTime.now());
+        ApiResponse<Object> response = new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), null, ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(CustomException.class)
