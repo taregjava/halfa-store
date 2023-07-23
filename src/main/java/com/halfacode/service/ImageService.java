@@ -1,6 +1,8 @@
 package com.halfacode.service;
 
+import com.halfacode.dto.ApiResponse;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -39,7 +42,7 @@ public class ImageService {
 
         return null;
     }
-    public  String saveFile(String fileName, MultipartFile multipartFile)
+    public ApiResponse<String> saveFile(String fileName, MultipartFile multipartFile)
             throws IOException {
         Path uploadPath = Paths.get("Files-Upload");
 
@@ -52,11 +55,11 @@ public class ImageService {
         try (InputStream inputStream = multipartFile.getInputStream()) {
             Path filePath = uploadPath.resolve(fileCode + "-" + fileName);
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ioe) {
-            throw new IOException("Could not save file: " + fileName, ioe);
+            return new ApiResponse<>(HttpStatus.OK.value(), fileCode, "Image saved successfully", LocalDateTime.now());
+        } catch (Exception ex) {
+            return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while saving the image", LocalDateTime.now());
         }
 
-        return fileCode;
     }
 
 

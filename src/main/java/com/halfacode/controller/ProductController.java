@@ -1,14 +1,22 @@
 package com.halfacode.controller;
 
+import com.halfacode.dto.ApiResponse;
+import com.halfacode.dto.ProductDTO;
 import com.halfacode.entity.Category;
 import com.halfacode.entity.Product;
+import com.halfacode.entity.User;
+import com.halfacode.exception.CustomException;
 import com.halfacode.service.CategoryService;
 import com.halfacode.service.ImageService;
 import com.halfacode.service.ProductService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -25,34 +33,63 @@ public class ProductController {
         this.categoryService = categoryService;
     }
     @GetMapping
-    public List<Product> getAllProducts() {
+    public ApiResponse<List<ProductDTO>> getAllProducts() {
         return productService.getAllProducts();
     }
-
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Long id) {
-        return productService.getProductById(id);
+    public ApiResponse<ProductDTO> getProductById(@PathVariable Long id) {
+        ApiResponse<ProductDTO> response = productService.getProductById(id);
+
+        // You can further customize the response if needed
+        return response;
     }
 
     @PostMapping
-    public Product createProduct(@RequestParam("file") MultipartFile imageFile, @RequestParam("name") String name, @RequestParam("categoryId") Long categoryId) throws IOException, IOException {
-        String imageName = imageService.saveFile(name,imageFile);
-        Category category = categoryService.getCategoryById(categoryId);
-        Product product = new Product();
-        product.setName(name);
-        product.setCategory(category);
-        product.setImageName(imageName);
-        return productService.createProduct(product);
-    }
+    public ResponseEntity<ApiResponse<ProductDTO>> createProduct(@ModelAttribute ProductDTO productDTO, @RequestParam("imageFile") MultipartFile imageFile) {
+        ApiResponse<ProductDTO> response = productService.createProduct(productDTO, imageFile);
 
-    @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        product.setId(id);
-        return productService.updateProduct(product);
+        if (response.getStatus() == HttpStatus.OK.value()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(response.getStatus()).body(response);
+        }
     }
+    @PutMapping("/{productId}")
+    public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(@PathVariable Long productId, @ModelAttribute ProductDTO productDTO, @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+        ApiResponse<ProductDTO> response = productService.updateProduct(productId, productDTO, imageFile);
 
+        if (response.getStatus() == HttpStatus.OK.value()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(response.getStatus()).body(response);
+        }
+    }
     @DeleteMapping("/{id}")
     public void deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> searchProducts (ProductDTO searchCriteria){
+
+            List<ProductDTO> products = productService.searchProducts(searchCriteria);
+
+            ApiResponse<List<ProductDTO>> response = new ApiResponse<>();
+            response.setStatus(HttpStatus.OK.value());
+            response.setPayload(products);
+            response.setTimestamp(LocalDateTime.now());
+
+            return ResponseEntity.ok(response);
+        }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByCategory(@PathVariable Long categoryId) {
+        ApiResponse<List<ProductDTO>> response = productService.getProductsByCategory(categoryId);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
+    }
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByAllCtegory() {
+        ApiResponse<List<ProductDTO>> response = productService.getProductsByAllCtegory();
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
     }
 }
