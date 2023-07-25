@@ -1,4 +1,5 @@
-package com.halfacode.enums;
+package com.halfacode.entity.order;
+
 
 public enum OrderStatus {
 

@@ -12,6 +12,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
+
 public class ApiResponse<T> {
     private int status;
     private T payload;
@@ -35,10 +36,7 @@ public class ApiResponse<T> {
         this.timestamp = timestamp;
     }
     public ApiResponse(int status, T payload, String error) {
-        this.status = status;
-        this.payload = payload;
-        this.error = error;
-        this.timestamp = timestamp;
+        this(status, payload, error, LocalDateTime.now());
     }
 
     public ApiResponse(int status, T payload, LocalDateTime now) {
@@ -48,14 +46,16 @@ public class ApiResponse<T> {
 
     }
     public String getTimestampAsString() {
-        return "[" +
-                timestamp.getYear() + "," +
-                timestamp.getMonthValue() + "," +
-                timestamp.getDayOfMonth() + "," +
-                timestamp.getHour() + "," +
-                timestamp.getMinute() + "," +
-                timestamp.getSecond() + "," +
-                timestamp.getNano() +
-                "]";
+        if (this.timestamp == null) {
+            return null;
+        }
+        return this.timestamp.toString();
     }
+
+  /*  public String getTimestampAsString() {
+        if (this.timestamp == null) {
+            return null;
+        }
+        return this.timestamp.toString();
+    }*/
 }

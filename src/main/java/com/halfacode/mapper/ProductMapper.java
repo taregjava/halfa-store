@@ -5,7 +5,7 @@ import com.halfacode.dto.ProductDTO;
 import com.halfacode.entity.Category;
 import com.halfacode.entity.Product;
 import com.halfacode.service.CategoryService;
-import io.micrometer.common.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;

@@ -1,17 +1,13 @@
 package com.halfacode.service;
 
-import com.halfacode.dto.ApiResponse;
 import com.halfacode.dto.ShipmentDTO;
-import com.halfacode.entity.Order;
-import com.halfacode.entity.Product;
+import com.halfacode.entity.order.Order;
 import com.halfacode.entity.Shipment;
 import com.halfacode.exception.OrderNotFoundException;
-import com.halfacode.exception.ProductNotFoundException;
 import com.halfacode.exception.ShipmentNotFoundException;
 import com.halfacode.repoistory.OrderRepository;
 import com.halfacode.repoistory.ShipmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service

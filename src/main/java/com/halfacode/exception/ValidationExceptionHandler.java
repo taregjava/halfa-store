@@ -91,4 +91,17 @@ public class ValidationExceptionHandler {
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
         }
+
+   /* @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String errorMessage = "Validation error: " + ex.getBindingResult().getFieldError().getDefaultMessage();
+
+        ApiResponse<Void> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        apiResponse.setError(errorMessage);
+        apiResponse.setTimestamp(LocalDateTime.now());
+        apiResponse.setPayload(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+    }*/
     }
