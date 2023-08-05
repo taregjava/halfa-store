@@ -9,6 +9,7 @@ import lombok.ToString;
 import org.codehaus.jackson.annotate.JsonManagedReference;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -50,7 +51,8 @@ public class Order {
     @OrderBy("updatedTime ASC")
     private List<OrderTrack> orderTracks = new ArrayList<>();
     // Constructors, getters, setters, etc.
-
+    @Transient
+    private List<String> productNames;
     public void addOrderDetail(OrderDetail orderDetail) {
         orderDetails.add(orderDetail);
         orderDetail.setOrder(this);
@@ -93,5 +95,15 @@ public class Order {
         if (!(obj instanceof Order)) return false;
         Order other = (Order) obj;
         return Objects.equals(id, other.id);
+    }
+
+    public List<String> getProductNames() {
+        if (orderDetails != null && !orderDetails.isEmpty()) {
+            return orderDetails.stream()
+                    .map(orderDetail -> orderDetail.getProduct().getName())
+                    .collect(Collectors.toList());
+        } else {
+            return new ArrayList<>();
+        }
     }
 }

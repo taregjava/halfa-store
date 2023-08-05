@@ -31,10 +31,10 @@ public class CategoryService {
     }
 
 
-    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(String name, MultipartFile imageFile) {
+    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(CategoryDTO categoryDTO, MultipartFile imageFile) {
         try {
             // Upload the image file to S3
-            ApiResponse<String> imageResponse = imageService.uploadFile("categories", name, imageFile.getInputStream());
+            ApiResponse<String> imageResponse = imageService.uploadFile("categories", categoryDTO.getName(), imageFile.getInputStream());
             if (!imageResponse.isSuccessful()) {
                 return ResponseEntity.status(imageResponse.getStatus()).body(
                         new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getError(), LocalDateTime.now())
@@ -43,11 +43,9 @@ public class CategoryService {
 
             String imageName = imageResponse.getPayload();
 
-            CategoryDTO categoryDTO = new CategoryDTO();
-            categoryDTO.setName(name);
+            categoryDTO.setImageName(imageName);
 
             Category category = categoryMapper.mapDtoToEntity(categoryDTO);
-            category.setImageName(imageName);
 
             Category createdCategory = categoryRepository.save(category);
             CategoryDTO createdCategoryDTO = categoryMapper.mapEntityToDto(createdCategory);

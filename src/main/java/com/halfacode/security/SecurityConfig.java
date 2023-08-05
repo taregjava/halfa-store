@@ -1,4 +1,5 @@
 package com.halfacode.security;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,17 +50,44 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
+/*  http.
 
-  /**/
+                authenticationProvider(customAuthenticationProvider()) // Use your custom authentication provider
+*/
+ /*   @Bean
+    public CustomAuthenticationProvider customAuthenticationProvider() {
+        return new CustomAuthenticationProvider();
+    }*/
+
+    /**/
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeHttpRequests((authorize) ->
-                        authorize
-                                .requestMatchers(AUTH_WHITELIST).permitAll() // Permit access to specified endpoints without authentication
+                        authorize.requestMatchers("/swagger-resources",
+                                        "/swagger-resources/**",
+                                        "/configuration/ui",
+                                        "/configuration/security",
+                                        "/swagger-ui.html",
+                                        "/swagger-ui/**",
+                                        "/webjars/**",
+                                        "/v3/api-docs/**",
+                                        "/api/public/**",
+                                        "/api/categories/**",
+                                        "/path/to/images/**",
+                                        "/api/products/**",
+                                        "api/users/**",
+                                        "/api/car/**",
+                                        "/api/shipments/**",
+                                        "api/orders/**",
+                                        "/api/public/authenticate",
+                                        "/actuator/*",
+
+                                        "/api/**").permitAll()// Permit access to specified endpoints without authentication
                                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll() // Permit POST requests to /api/auth/** without authentication
                                 .anyRequest().authenticated()
                 );

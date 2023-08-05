@@ -1,5 +1,6 @@
 package com.halfacode.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.halfacode.entity.Address;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,8 +17,10 @@ public class UserRegistrationDto {
     private String name;
     private String username;
     private String email;
+
+   // @JsonIgnore // Add this annotation to exclude the 'password' field from JSON serialization
     private String password;
-    private Address address;
+    private AddressDto address;
     private Long roleId; // The selected role ID, set to null if no role is selected
 
 }

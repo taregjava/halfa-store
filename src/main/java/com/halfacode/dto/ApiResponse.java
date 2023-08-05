@@ -1,9 +1,11 @@
 package com.halfacode.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.halfacode.entity.Product;
-import com.halfacode.entity.Shipment;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,9 +19,9 @@ public class ApiResponse<T> {
     private int status;
     private T payload;
     private String error;
-    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime timestamp;
-
 
     public ApiResponse(String error,T payload) {
         this.error = error;

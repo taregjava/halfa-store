@@ -165,5 +165,21 @@ public class ProductMapper {
         // Assert.isTrue(entity.getDiscountPercent() >= 0 && entity.getDiscountPercent() <= 100, "Discount percent must be between 0 and 100");
     }
 
+    public boolean isEmpty(ProductDTO dto) {
+        return dto == null ||
+                dto.getId() == null &&
+                        dto.getName() == null &&
+                        dto.getCategoryId() == null &&
+                        dto.getImageName() == null &&
+                        dto.getFullDescription() == null &&
+                        dto.getCreatedTime() == null &&
+                        dto.getUpdatedTime() == null &&
+                        dto.getEnabled() == null &&
+                        dto.getInStock() == null &&
+                        dto.getCost() == null &&
+                        dto.getPrice() == null &&
+                        dto.getDiscountPercent() == null &&
+                        (dto.getImageUrls() == null || dto.getImageUrls().isEmpty());
+    }
 
 }

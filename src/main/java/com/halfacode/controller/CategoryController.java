@@ -32,10 +32,10 @@ public class CategoryController {
         return categoryService.getCategoryById(id);
     }
     @PostMapping
-   public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@RequestParam("file") MultipartFile imageFile,
-                                                                  @RequestParam("name") String name) {
-       return categoryService.createCategory(name, imageFile);
-   }
+    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@ModelAttribute CategoryDTO categoryDTO,
+                                                                   @RequestParam("file") MultipartFile imageFile) {
+        return categoryService.createCategory(categoryDTO, imageFile);
+    }
 
     @PutMapping("/{categoryId}")
     public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(@PathVariable Long categoryId,

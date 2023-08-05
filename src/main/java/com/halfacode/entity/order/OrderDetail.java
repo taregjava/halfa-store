@@ -26,7 +26,7 @@ public class OrderDetail {
     private float unitPrice;
     private float subtotal;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private Product product;
 

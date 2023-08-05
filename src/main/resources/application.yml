@@ -1,0 +1,54 @@
+# Security Configuration
+application:
+  frontend-default-url: http://localhost:4200
+  security:
+    access-token-validity: 20
+    refresh-token-validity: 10080
+    access-token-secret: very_long_and_secured_and_safe_access_key
+    refresh-token-secret: very_long_and_secured_and_safe_refresh_key
+    allowed-origins: http://localhost:4200,http://localhost:3000,http://localhost:8083
+    google-client-id: 182557182495-4ojqb7gpdf0cee6i97md5b3tns5sbc1e.apps.googleusercontent.com
+    ignored: /**
+
+# Hibernate and DataSource Configuration
+spring:
+  security:
+    user:
+      name: tareg
+      password: 0912658511
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  datasource:
+    url: jdbc:mysql://localhost:3306/shopehalfastore?createDatabaseIfNotExist=true
+    username: root
+    password: ''
+  data:
+    jpa:
+      repositories:
+        enabled: true
+    database: mysql
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    protocol: smtp
+    username: tareg.balola@gmail.com
+    password: yzzarnzqilfywhgo
+    test-connection: true
+    properties:
+      "mail.smtp.auth": true
+      "mail.smtp.starttls.enable": true
+      "mail.debug": true
+# JWT Configuration
+jwt:
+  secret: mySecretKey
+  expiration: 3600000
+
+# AWS Configuration
+aws:
+  accessKeyId: AKIAQ5DKKXL4MMRGCJE4
+  secretKey: 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

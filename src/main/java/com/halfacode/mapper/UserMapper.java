@@ -1,7 +1,9 @@
 package com.halfacode.mapper;
 
+import com.halfacode.dto.AddressDto;
 import com.halfacode.dto.ProductDTO;
 import com.halfacode.dto.UserRegistrationDto;
+import com.halfacode.entity.Address;
 import com.halfacode.entity.Product;
 import com.halfacode.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,8 +19,8 @@ public class UserMapper {
                 .name(user.getName())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .password(user.getPassword())
-                .address(user.getAddress())
+               // .password(user.getPassword())
+                .address(buildAddressResponseDto(user.getAddress()))
                 .roleId(user.getRoles().isEmpty() ? null : user.getRoles().iterator().next().getId())
                 .build();
     }
@@ -27,8 +29,18 @@ public class UserMapper {
         entity.setName(dto.getName());
         entity.setUsername(dto.getUsername());
         entity.setEmail(dto.getEmail());
-        entity.setPassword(dto.getPassword());
-        entity.setAddress(dto.getAddress());
+      //  entity.setPassword(dto.getPassword());
+       /* AddressResponseDto addressResponseDto = buildAddressResponseDto(entity.getAddress());
+        dto.setAddress(addressResponseDto);*/
+        Address addressEntity = new Address();
+        addressEntity.setAddressLine1(dto.getAddress().getAddressLine1());
+        addressEntity.setAddressLine2(dto.getAddress().getAddressLine2());
+        addressEntity.setCity(dto.getAddress().getCity());
+        addressEntity.setState(dto.getAddress().getState());
+        addressEntity.setPostalCode(dto.getAddress().getPostalCode());
+        // Set the converted Address entity in the User entity
+        entity.setAddress(addressEntity);
+
         return entity;
     }
     public User mapUserDetailsToEntity(UserDetails userDetails) {
@@ -52,8 +64,18 @@ public class UserMapper {
         dto.setUsername(entity.getUsername());
         dto.setEmail(entity.getEmail());
         dto.setPassword(entity.getPassword());
-        dto.setAddress(entity.getAddress());
+        AddressDto addressDto = buildAddressResponseDto(entity.getAddress());
+        dto.setAddress(addressDto);
+
         // Set other fields as needed
         return dto;
+    }
+
+    public static AddressDto buildAddressResponseDto(Address address) {
+        return AddressDto.builder()
+                .addressLine1(address.getAddressLine1())
+                .city(address.getCity())
+                .state(address.getState())
+                .build();
     }
 }
