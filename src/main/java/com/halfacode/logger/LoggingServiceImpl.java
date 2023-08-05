@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-@Service
+//@Service
 public class LoggingServiceImpl implements LoggingService,LogCleanupService  {
 
     private final Logger logger = LoggerFactory.getLogger(LoggingServiceImpl.class.getName());

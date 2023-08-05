@@ -12,7 +12,7 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-@ControllerAdvice
+//@ControllerAdvice
 public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
 
     @Autowired

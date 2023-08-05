@@ -8,8 +8,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-@Component
-@Order(value = 1)
+//@Component
+//@Order(value = 1)
 public class InterceptLog implements HandlerInterceptor {
 
     private final LoggingService loggingService;

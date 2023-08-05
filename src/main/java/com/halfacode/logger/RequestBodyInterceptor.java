@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAd
 
 import java.lang.reflect.Type;
 
-@ControllerAdvice
+//@ControllerAdvice
 public class RequestBodyInterceptor extends RequestBodyAdviceAdapter {
 
     @Autowired
