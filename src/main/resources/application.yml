@@ -32,23 +32,3 @@ spring:
       repositories:
         enabled: true
     database: mysql
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    protocol: smtp
-    username: tareg.balola@gmail.com
-    password: yzzarnzqilfywhgo
-    test-connection: true
-    properties:
-      "mail.smtp.auth": true
-      "mail.smtp.starttls.enable": true
-      "mail.debug": true
-# JWT Configuration
-jwt:
-  secret: mySecretKey
-  expiration: 3600000
-
-# AWS Configuration
-aws:
-  accessKeyId: AKIAQ5DKKXL4MMRGCJE4
-  secretKey: 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
