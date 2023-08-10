@@ -9,10 +9,7 @@ import com.halfacode.exception.ProductNotFoundException;
 import com.halfacode.mapper.ProductMapper;
 import com.halfacode.repoistory.ProductRepository;
 import com.halfacode.specifiaction.ProductSpecifications;
-import com.halfacode.specifiaction.WrappedSpecification;
 import com.halfacode.util.HalfaStoreUtility;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +76,7 @@ public class ProductService {
             // Upload the image file to S3
             ApiResponse<String> imageResponse = uploadImageToS3(productDTO, imageFile);
             if (!imageResponse.isSuccessful()) {
-                return new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getError(), LocalDateTime.now());
+                return new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getMessage(), LocalDateTime.now());
             }
             String imageName = imageResponse.getPayload();
 
@@ -165,7 +162,7 @@ public class ProductService {
         try {
             ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(categoryId);
             if (categoryResponse.getStatus() != HttpStatus.OK.value()) {
-                return new ApiResponse<>(categoryResponse.getStatus(), null, categoryResponse.getError(), LocalDateTime.now());
+                return new ApiResponse<>(categoryResponse.getStatus(), null, categoryResponse.getMessage(), LocalDateTime.now());
             }
 
             CategoryDTO categoryDTO = categoryResponse.getPayload();
@@ -193,8 +190,10 @@ public class ProductService {
 
     public ApiResponse<List<ProductDTO>> getBestSellingProducts() {
         try {
-            List<Product> bestSellingProducts = calculateBestSellingProducts(); // Implement this method
-            List<ProductDTO> bestSellingProductDTOs = productMapper.mapEntityListToDtoList(bestSellingProducts);
+            List<Product> bestSellingProducts = calculateBestSellingProducts();
+            List<ProductDTO> bestSellingProductDTOs = bestSellingProducts.stream()
+                    .map(product -> productMapper.buildProductDTO(product)) // Use the mapper to build ProductDTO instances
+                    .collect(Collectors.toList());
 
             return new ApiResponse<>(HttpStatus.OK.value(), bestSellingProductDTOs, null, LocalDateTime.now());
         } catch (Exception ex) {
@@ -203,8 +202,10 @@ public class ProductService {
     }
     public ApiResponse<List<ProductDTO>> getDealOfTheDayProducts() {
         try {
-            List<Product> dealOfTheDayProducts = calculateDealOfTheDayProducts(); // Implement this method
-            List<ProductDTO> dealOfTheDayProductDTOs = productMapper.mapEntityListToDtoList(dealOfTheDayProducts);
+            List<Product> dealOfTheDayProducts = calculateDealOfTheDayProducts();
+            List<ProductDTO> dealOfTheDayProductDTOs = dealOfTheDayProducts.stream()
+                    .map(product -> productMapper.buildProductDTO(product)) // Use the mapper to build ProductDTO instances
+                    .collect(Collectors.toList());
 
             return new ApiResponse<>(HttpStatus.OK.value(), dealOfTheDayProductDTOs, null, LocalDateTime.now());
         } catch (Exception ex) {

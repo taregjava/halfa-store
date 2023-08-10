@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -136,7 +135,7 @@ public class LoggingServiceImpl implements LoggingService,LogCleanupService  {
                             } else {
                                 writer.write("null\n");
                             }
-                            writer.write("error: " + response.getError() + "\n");
+                            writer.write("error: " + response.getMessage() + "\n");
                             writer.write("successful: " + response.isSuccessful() + "\n");
                             writer.write("\n"); // Add a newline after each response log
                         }

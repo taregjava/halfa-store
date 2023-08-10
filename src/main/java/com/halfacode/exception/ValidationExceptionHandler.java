@@ -22,7 +22,7 @@ public class ValidationExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleNotFoundException(NotFoundException ex) {
         ApiResponse<Void> response = new ApiResponse<>();
         response.setStatus(HttpStatus.NOT_FOUND.value());
-        response.setError(ex.getMessage());
+        response.setMessage(ex.getMessage());
         response.setTimestamp(LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
@@ -36,7 +36,7 @@ public class ValidationExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException ex) {
         ApiResponse<Void> response = new ApiResponse<>();
         response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.setError(ex.getErrorMessage());
+        response.setMessage(ex.getErrorMessage());
         response.setTimestamp(LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -53,7 +53,7 @@ public class ValidationExceptionHandler {
 
             ApiResponse<Void> apiResponse = new ApiResponse<>();
             apiResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-            apiResponse.setError("Validation error");
+            apiResponse.setMessage("Validation error");
             apiResponse.setTimestamp(LocalDateTime.now());
             apiResponse.setPayload(null);
           //  apiResponse.setErrors(errors);
@@ -72,7 +72,7 @@ public class ValidationExceptionHandler {
 
             ApiResponse<Void> apiResponse = new ApiResponse<>();
             apiResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-            apiResponse.setError("Validation error");
+            apiResponse.setMessage("Validation error");
             apiResponse.setTimestamp(LocalDateTime.now());
             apiResponse.setPayload(null);
            // apiResponse.setErrors(errors);
@@ -84,7 +84,7 @@ public class ValidationExceptionHandler {
         public ResponseEntity<ApiResponse<Void>> handleValidationException(ValidationException ex) {
             ApiResponse<Void> apiResponse = new ApiResponse<>();
             apiResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-            apiResponse.setError("Validation error");
+            apiResponse.setMessage("Validation error");
             apiResponse.setTimestamp(LocalDateTime.now());
             apiResponse.setPayload(null);
            // apiResponse.getErrors().add(ex.getMessage());
@@ -104,4 +104,10 @@ public class ValidationExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
     }*/
+
+    @ExceptionHandler(RoleCreationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRoleCreationException(RoleCreationException ex) {
+        ApiResponse<Void> response = new ApiResponse<>(400, null, ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
     }

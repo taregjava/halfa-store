@@ -1,25 +1,30 @@
 package com.halfacode.security;
 
-import com.halfacode.entity.Role;
-import lombok.Builder;
-import lombok.Getter;
+import com.halfacode.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
-@Getter
-@Builder
-public class UserPrincipal implements UserDetails {
+public class UserInfoUserDetails implements UserDetails {
 
-    private final Long userId;
-    private final String email;
-    private final Collection<? extends GrantedAuthority> authorities;
 
-    // Implement the methods to retrieve user details and authorities based on your application logic
+    private String name;
+    private String password;
+    private List<GrantedAuthority> authorities;
+
+    public UserInfoUserDetails(User userInfo) {
+        name=userInfo.getName();
+        password=userInfo.getPassword();
+        authorities = userInfo.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName())) // Assuming 'getName()' gives the role name
+                .collect(Collectors.toList());
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
@@ -27,37 +32,31 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getPassword() {
-        // Return the user's hashed password here
-        return null;
+        return password;
     }
 
     @Override
     public String getUsername() {
-        // Return the user's username here
-        return null;
+        return name;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        // Return true if the user account is not expired
         return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        // Return true if the user account is not locked
         return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        // Return true if the user's credentials are not expired
         return true;
     }
 
     @Override
     public boolean isEnabled() {
-        // Return true if the user account is enabled
         return true;
     }
 }

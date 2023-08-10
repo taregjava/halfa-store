@@ -42,7 +42,7 @@ public class DeliveryController {
         } catch (Exception e) {
             ApiResponse<List<DeliveryOption>> response = new ApiResponse<>();
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            response.setError(e.getMessage());
+            response.setMessage(e.getMessage());
             response.setTimestamp(LocalDateTime.now());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
@@ -65,7 +65,7 @@ public class DeliveryController {
         } catch (Exception e) {
             ApiResponse<Country> response = new ApiResponse<>();
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            response.setError(e.getMessage());
+            response.setMessage(e.getMessage());
             response.setTimestamp(LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
@@ -90,7 +90,7 @@ public class DeliveryController {
         } catch (Exception e) {
             ApiResponse<String> response = new ApiResponse<>();
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            response.setError(e.getMessage());
+            response.setMessage(e.getMessage());
             response.setTimestamp(LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }

@@ -1,5 +1,6 @@
 package com.halfacode.controller;
 
+import com.halfacode.dto.ApiResponse;
 import com.halfacode.dto.CartItemDTO;
 import com.halfacode.exception.ProductNotFoundException;
 import com.halfacode.exception.UserNotFoundException;
@@ -23,5 +24,13 @@ public class CartController {
         cartService.addItemToCart(cartItemDTO);
         return ResponseEntity.ok("Items added to the cart");
     }
-    // Implement other API endpoints for updating and removing items from the cart.
+    @PostMapping("/update/{cartItemId}")
+    public ApiResponse<String> updateCart(@PathVariable Long cartItemId, @RequestParam int newQuantity) {
+        return cartService.updateCartItem(cartItemId, newQuantity);
+    }
+
+    @DeleteMapping("/remove/{cartItemId}")
+    public ApiResponse<String> removeCart(@PathVariable Long cartItemId) {
+        return cartService.removeCartItem(cartItemId);
+    }
 }

@@ -1,6 +1,5 @@
 package com.halfacode.service;
 
-import com.halfacode.dto.UserDto;
 import com.halfacode.dto.UserRegistrationDto;
 import com.halfacode.dto.UserRegistrationResponseDto;
 import com.halfacode.entity.Role;
@@ -9,14 +8,13 @@ import com.halfacode.mapper.UserMapper;
 import com.halfacode.repoistory.RoleRepository;
 import com.halfacode.repoistory.UserRepository;
 import com.halfacode.security.JwtUtil;
-import com.halfacode.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,71 +24,44 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final JwtUtil jwtUtil;
-    private final RoleRepository roleRepository;
-    private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository,
-                       JwtUtil jwtUtil,
-                       RoleRepository roleRepository,
-                       UserMapper userMapper,
-                       PasswordEncoder passwordEncoder,
-                       AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.jwtUtil = jwtUtil;
-        this.roleRepository = roleRepository;
-        this.userMapper = userMapper;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-    }
-    public UserPrincipal buildUserPrincipal(User user) {
-        // Fetch the authorities for the user (roles)
-        Collection<? extends GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toList());
+    private JwtUtil jwtUtil;
 
-        // Build the UserPrincipal with the fetched authorities
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(user.getId())
-                .email(user.getEmail())
-                .authorities(authorities)
-                .build();
+    @Autowired
+    private RoleRepository roleRepository;
 
-        return userPrincipal;
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public UserRegistrationResponseDto registerUser(UserRegistrationDto userRegistrationDto) {
+        User user = userMapper.mapDtoToEntity(userRegistrationDto);
+
+        // Hash password and save user
+        String hashedPassword = passwordEncoder.encode(userRegistrationDto.getPassword());
+        user.setPassword(hashedPassword);
+        user = userRepository.save(user);
+
+        // Generate a token for the user
+        String token = generateToken(userRegistrationDto);
+
+        // Create the UserRegistrationResponseDto and set the token
+        UserRegistrationResponseDto responseDto = new UserRegistrationResponseDto();
+        responseDto.setUser(userMapper.mapEntityToDto(user));
+        responseDto.setToken(token);
+
+        return responseDto;
     }
 
     public String generateToken(UserRegistrationDto userRegistrationDto) {
-        try {
-            // Extract username and password from the UserRegistrationDto
-            String username = userRegistrationDto.getUsername();
-            String password = userRegistrationDto.getPassword();
-
-            // Authenticate the user with the provided username and password
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-
-            // If authentication is successful, create a UserPrincipal object
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
-
-          /*  Collection<GrantedAuthority> authorities = user.getRoles().stream()
-                    .map(role -> new SimpleGrantedAuthority(role.getName()))
-                    .collect(Collectors.toList());
-*/
-            UserPrincipal userPrincipal = buildUserPrincipal(user);
-
-            // Generate a token for the UserPrincipal
-            String token = jwtUtil.generateToken(userPrincipal);
-
-            return token;
-        } catch (AuthenticationException e) {
-            throw new RuntimeException("Invalid username or password");
-        }
+        // Generate and return token without authenticating
+        return jwtUtil.generateToken(userRegistrationDto);
     }
-
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -99,7 +70,7 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public UserRegistrationResponseDto registerUser(UserRegistrationDto userRegistrationDto) {
+  /*  public UserRegistrationResponseDto registerUser(UserRegistrationDto userRegistrationDto) {
         User user = userMapper.mapDtoToEntity(userRegistrationDto);
 
         // If the user selected a role during registration, add it to the roles set
@@ -141,7 +112,7 @@ public class UserService {
         responseDto.setToken(token);
 
         return responseDto;
-    }
+    }*/
 
     public Optional<User> updateUser(Long id, User user) {
         Optional<User> existingUser = userRepository.findById(id);

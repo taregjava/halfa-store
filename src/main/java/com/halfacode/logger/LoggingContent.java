@@ -9,6 +9,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@Setter
 public class LoggingContent {
 
     private String httpMethod;

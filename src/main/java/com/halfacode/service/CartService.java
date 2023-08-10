@@ -1,9 +1,11 @@
 package com.halfacode.service;
 
+import com.halfacode.dto.ApiResponse;
 import com.halfacode.dto.CartItemDTO;
 import com.halfacode.entity.CartItem;
 import com.halfacode.entity.Product;
 import com.halfacode.entity.User;
+import com.halfacode.exception.CustomException;
 import com.halfacode.exception.ProductNotFoundException;
 import com.halfacode.exception.UserNotFoundException;
 import com.halfacode.repoistory.CartItemRepository;
@@ -11,6 +13,7 @@ import com.halfacode.repoistory.ProductRepository;
 import com.halfacode.repoistory.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,19 +65,42 @@ public class CartService {
         }
     }*/
 
-    public void addItemToCart(CartItemDTO cartItemDTO) {
+    public ApiResponse<String> addItemToCart(CartItemDTO cartItemDTO) {
         User user = userRepository.findById(cartItemDTO.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found")); // Custom exception handling if user not found
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
         Product product = productRepository.findById(cartItemDTO.getProductId())
-                .orElseThrow(() -> new ProductNotFoundException("Product not found")); // Custom exception handling if product not found
+                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
 
         CartItem cartItem = new CartItem(user, product, cartItemDTO.getQuantity());
 
         user.getCartItems().add(cartItem);
         userRepository.save(user);
+
+        return new ApiResponse<>(200, "Item added to cart successfully", LocalDateTime.now());
     }
 
-    // Implement other methods for updating and removing items from the cart.
+    public ApiResponse<String> updateCartItem(Long cartItemId, int newQuantity) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new CustomException("Cart item not found"));
 
-    // Implement other methods for updating and removing items from the cart.
+        cartItem.setQuantity(newQuantity);
+        cartItemRepository.save(cartItem);
+
+        return new ApiResponse<>(200, "Cart item updated successfully", LocalDateTime.now());
+    }
+
+    public ApiResponse<String> removeCartItem(Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new CustomException("Cart item not found"));
+
+        User user = cartItem.getUser();
+        user.getCartItems().remove(cartItem);
+        userRepository.save(user);
+
+        cartItemRepository.delete(cartItem);
+
+        return new ApiResponse<>(200, "Cart item removed successfully", LocalDateTime.now());
+    }
+
 }
