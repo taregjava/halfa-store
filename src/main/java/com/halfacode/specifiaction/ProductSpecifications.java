@@ -1,16 +1,25 @@
 package com.halfacode.specifiaction;
+
+import com.halfacode.dto.ProductDTO;
 import com.halfacode.entity.Product;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Date;
+import java.util.Locale;
 
 public class ProductSpecifications {
 
-    public static Specification<Product> hasName(String name) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("name"), name);
+    public static Specification<Product> buildSpecification(ProductDTO productDTO) {
+        return Specification
+                .where(hasName(productDTO.getName()));
+
     }
 
+    public static Specification<Product> hasName(String name) {
+        return (root, query, cb) ->
+                StringUtils.isBlank(name) ? null : cb.like(cb.lower(root.get("name")), "%" +name.toLowerCase() + "%");
+    }
     public static Specification<Product> hasCategoryId(Long categoryId) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("category").get("id"), categoryId);
@@ -70,4 +79,24 @@ public class ProductSpecifications {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThan(root.get("updatedTime"), date);
     }
+    public static Specification<Product> hasDiscountPercentGreaterThan(float discountThreshold) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThan(root.get("discountPercent"), discountThreshold);
+    }
+    /*public static Specification<Product> buildSpecification(ProductDTO searchCriteria) {
+        Specification<Product> spec = Specification.where(null);
+
+        if (searchCriteria.getName() != null) {
+            spec = spec.and(hasName(searchCriteria.getName()));
+        }
+
+        // Add other specifications based on your criteria
+        if (searchCriteria.getEnabled() != null) {
+            spec = spec.and(isEnabled(searchCriteria.getEnabled()));
+        }
+
+        // Add more conditions here as needed
+
+        return spec;
+    }*/
 }

@@ -13,7 +13,7 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     // Add custom queries or methods if needed
     List<Product> findByCategory(Category category);
-    @Query("SELECT p FROM Product p")
-    List<Product> findByCategory();
+   /* @Query("SELECT p FROM Product p")
+    List<Product> findByCategory();*/
 
 }

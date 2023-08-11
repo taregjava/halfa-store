@@ -6,6 +6,7 @@ import com.halfacode.entity.Role;
 import com.halfacode.entity.User;
 import com.halfacode.repoistory.RoleRepository;
 import com.halfacode.repoistory.UserRepository;
+import com.halfacode.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,9 @@ import java.util.Collections;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
+   /* @Autowired
     private AuthenticationManager authenticationManager;
-
+*/
     @Autowired
     private UserRepository userRepository;
 
@@ -36,17 +37,29 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UserService userService;
+  /*  @PostMapping("/login")
+    public ResponseEntity<String> loginUser(@RequestBody LoginDto loginRequestDto) {
+        String username = loginRequestDto.getUsernameOrEmail();
+        String password = loginRequestDto.getPassword();
 
-    @PostMapping("/signin")
+        // Generate a token for the user
+        String token = userService.generateToken(username, password);
+
+        // Return the token in the response
+        return ResponseEntity.ok(token);
+    }*/
+  /*  @PostMapping("/signin")
     public ResponseEntity<String> authenticateUser(@RequestBody LoginDto loginDto){
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 loginDto.getUsernameOrEmail(), loginDto.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return new ResponseEntity<>("User signed-in successfully!.", HttpStatus.OK);
-    }
+    }*/
 
-    @PostMapping("/signup")
+   /* @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignUpDto signUpDto){
 
         // add check for username exists in a DB
@@ -64,7 +77,7 @@ public class AuthController {
         user.setName(signUpDto.getName());
         user.setUsername(signUpDto.getUsername());
         user.setEmail(signUpDto.getEmail());
-        user.setPassword(passwordEncoder.encode(signUpDto.getPassword()));
+     //   user.setPassword(passwordEncoder.encode(signUpDto.getPassword()));
 
         Role roles = roleRepository.findByName("ROLE_ADMIN").get();
         user.setRoles(Collections.singleton(roles));
@@ -73,5 +86,5 @@ public class AuthController {
 
         return new ResponseEntity<>("User registered successfully", HttpStatus.OK);
 
-    }
+    }*/
 }

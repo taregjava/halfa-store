@@ -92,4 +92,17 @@ public class ProductController {
         ApiResponse<List<ProductDTO>> response = productService.getProductsByAllCtegory();
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
     }
+
+    @GetMapping("/best-selling")
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getBestSellingProducts() {
+        ApiResponse<List<ProductDTO>> response = productService.getBestSellingProducts();
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
+    }
+
+    @GetMapping("/deal-of-the-day")
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getDealOfTheDayProducts() {
+        ApiResponse<List<ProductDTO>> response = productService.getDealOfTheDayProducts();
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
+    }
+
 }

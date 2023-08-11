@@ -20,10 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,7 +76,7 @@ public class ProductService {
             // Upload the image file to S3
             ApiResponse<String> imageResponse = uploadImageToS3(productDTO, imageFile);
             if (!imageResponse.isSuccessful()) {
-                return new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getError(), LocalDateTime.now());
+                return new ApiResponse<>(imageResponse.getStatus(), null, imageResponse.getMessage(), LocalDateTime.now());
             }
             String imageName = imageResponse.getPayload();
 
@@ -135,24 +133,36 @@ public class ProductService {
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
-
     public List<ProductDTO> searchProducts(ProductDTO searchCriteria) {
-        Specification<Product> spec = Specification.where(null);
+        // Build the specification based on the search criteria
+        Specification<Product> spec = ProductSpecifications.buildSpecification(searchCriteria);
 
-        if (searchCriteria.getName() != null) {
-            spec = spec.and(ProductSpecifications.hasName(searchCriteria.getName()));
-        }
-        // Add other specifications based on your criteria
+        // You can add more specifications here based on other search criteria
+        // For example:
+        // if (searchCriteria.getEnabled() != null) {
+        //     spec = spec.and(ProductSpecifications.isEnabled(searchCriteria.getEnabled()));
+        // }
 
+        // Execute the query with the built specification
         List<Product> products = productRepository.findAll(spec);
+
+        // Check if any products are found and throw an exception if none are found
+        if (products.isEmpty()) {
+            throw new ProductNotFoundException("No products found for the given search criteria.");
+        }
+
+        // Map the found products to DTOs and return the list
         return productMapper.mapEntityListToDtoList(products);
     }
+
+
+
 
     public ApiResponse<List<ProductDTO>> getProductsByCategory(Long categoryId) {
         try {
             ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(categoryId);
             if (categoryResponse.getStatus() != HttpStatus.OK.value()) {
-                return new ApiResponse<>(categoryResponse.getStatus(), null, categoryResponse.getError(), LocalDateTime.now());
+                return new ApiResponse<>(categoryResponse.getStatus(), null, categoryResponse.getMessage(), LocalDateTime.now());
             }
 
             CategoryDTO categoryDTO = categoryResponse.getPayload();
@@ -169,7 +179,7 @@ public class ProductService {
     public ApiResponse<List<ProductDTO>> getProductsByAllCtegory() {
         try {
 
-            List<Product> products = productRepository.findByCategory();
+            List<Product> products = productRepository.findAll();
             List<ProductDTO> productDTOs = productMapper.mapEntityListToDtoList(products);
 
             return new ApiResponse<>(HttpStatus.OK.value(), productDTOs, null, LocalDateTime.now());
@@ -177,6 +187,64 @@ public class ProductService {
             return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while retrieving products by category", LocalDateTime.now());
         }
     }
+
+    public ApiResponse<List<ProductDTO>> getBestSellingProducts() {
+        try {
+            List<Product> bestSellingProducts = calculateBestSellingProducts();
+            List<ProductDTO> bestSellingProductDTOs = bestSellingProducts.stream()
+                    .map(product -> productMapper.buildProductDTO(product)) // Use the mapper to build ProductDTO instances
+                    .collect(Collectors.toList());
+
+            return new ApiResponse<>(HttpStatus.OK.value(), bestSellingProductDTOs, null, LocalDateTime.now());
+        } catch (Exception ex) {
+            return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while retrieving best-selling products", LocalDateTime.now());
+        }
+    }
+    public ApiResponse<List<ProductDTO>> getDealOfTheDayProducts() {
+        try {
+            List<Product> dealOfTheDayProducts = calculateDealOfTheDayProducts();
+            List<ProductDTO> dealOfTheDayProductDTOs = dealOfTheDayProducts.stream()
+                    .map(product -> productMapper.buildProductDTO(product)) // Use the mapper to build ProductDTO instances
+                    .collect(Collectors.toList());
+
+            return new ApiResponse<>(HttpStatus.OK.value(), dealOfTheDayProductDTOs, null, LocalDateTime.now());
+        } catch (Exception ex) {
+            return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "An error occurred while retrieving Deal of the Day products", LocalDateTime.now());
+        }
+    }
+
+    private List<Product> calculateDealOfTheDayProducts() {
+        // Define your logic for selecting the deal of the day products here
+        // For example, you could select products that have a special "deal of the day" tag,
+        // or products that have a high discount percentage, etc.
+
+        // For demonstration purposes, let's assume you want to select products with a discount
+        // percentage greater than a certain threshold (e.g., 20%).
+
+        float discountThreshold = 20.0f; // Example threshold
+
+        Specification<Product> spec = Specification
+                .where(ProductSpecifications.hasDiscountPercentGreaterThan(discountThreshold));
+
+        return productRepository.findAll(spec);
+    }
+
+    public List<Product> calculateBestSellingProducts() {
+        // Implement your logic to calculate best-selling products here
+        // This could involve analyzing sales data, order history, reviews, etc.
+
+        // For demonstration purposes, let's assume you have a list of products
+        // and you want to sort them based on their discount percentage in descending order
+        List<Product> allProducts = productRepository.findAll();
+
+        // Sort products based on discount percentage (higher discounts first)
+        allProducts.sort((a, b) -> Float.compare(b.getDiscountPercent(), a.getDiscountPercent()));
+
+        // Return the top N best-selling products, where N is the number you want to show
+        int numberOfBestSellingProducts = 10; // Change this as needed
+        return allProducts.subList(0, Math.min(numberOfBestSellingProducts, allProducts.size()));
+    }
+
     private ApiResponse<String> uploadImageToS3(ProductDTO productDTO, MultipartFile imageFile) throws IOException {
         return s3Service.uploadFile("images", productDTO.getName(), imageFile.getInputStream());
     }
@@ -192,4 +260,5 @@ public class ProductService {
         product.setImageName(imageName);
         return productRepository.save(product);
     }
+
 }

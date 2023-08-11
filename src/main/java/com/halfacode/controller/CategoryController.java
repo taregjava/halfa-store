@@ -32,10 +32,10 @@ public class CategoryController {
         return categoryService.getCategoryById(id);
     }
     @PostMapping
-   public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@RequestParam("file") MultipartFile imageFile,
-                                                                  @RequestParam("name") String name) {
-       return categoryService.createCategory(name, imageFile);
-   }
+    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@ModelAttribute CategoryDTO categoryDTO,
+                                                                   @RequestParam("file") MultipartFile imageFile) {
+        return categoryService.createCategory(categoryDTO, imageFile);
+    }
 
     @PutMapping("/{categoryId}")
     public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(@PathVariable Long categoryId,
@@ -46,7 +46,9 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
+        ApiResponse<Void> response = categoryService.deleteCategory(id);
+
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

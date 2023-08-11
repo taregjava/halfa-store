@@ -6,6 +6,7 @@ import com.halfacode.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -17,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -104,5 +106,40 @@ public class S3Service {
             client.deleteObject(request);
             System.out.println("Deleted " + object.key());
         }
+    }
+
+    public void deleteLogsOlderThan7Days() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime sevenDaysAgo = now.minusDays(7);
+
+        ListObjectsRequest listRequest = ListObjectsRequest.builder()
+                .bucket(bucketName)
+                .prefix("logs/") // Assuming logs are stored in a folder named "logs"
+                .build();
+
+        ListObjectsResponse response = s3Client.listObjects(listRequest);
+        List<S3Object> logs = response.contents();
+
+        for (S3Object log : logs) {
+            String key = log.key();
+            String[] parts = key.split("/"); // Assuming the key format is "logs/YYYY-MM-dd/filename.json"
+            if (parts.length == 2) {
+                String dateString = parts[1];
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                LocalDateTime logDate = LocalDateTime.parse(dateString, formatter);
+                if (logDate.isBefore(sevenDaysAgo)) {
+                    DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .build();
+                    s3Client.deleteObject(deleteRequest);
+                    System.out.println("Deleted log: " + key);
+                }
+            }
+        }
+    }
+    @Scheduled(cron = "0 0 0 * * ?") // Run at midnight every day
+    public void scheduleLogDeletion() {
+        deleteLogsOlderThan7Days();
     }
 }
