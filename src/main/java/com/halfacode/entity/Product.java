@@ -46,13 +46,14 @@ public class Product {
 
     @Column(name = "discount_percent")
     private float discountPercent;
-   /* @ManyToMany(mappedBy = "products")
-    private List<CartItem> cartItems = new ArrayList<>();
-*/
+
+    /* @ManyToMany(mappedBy = "products")
+     private List<CartItem> cartItems = new ArrayList<>();
+ */
     /* @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;*/
-   public Long getCategoryId() {
-       return category != null ? category.getId() : null;
-   }
+    public Long getCategoryId() {
+        return category != null ? category.getId() : null;
+    }
 }

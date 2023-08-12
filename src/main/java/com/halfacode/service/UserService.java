@@ -1,5 +1,6 @@
 package com.halfacode.service;
 
+import com.google.i18n.phonenumbers.NumberParseException;
 import com.halfacode.dto.UserRegistrationDto;
 import com.halfacode.dto.UserRegistrationResponseDto;
 import com.halfacode.entity.Role;
@@ -38,8 +39,10 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private OTPService otpService; // Inject the OTPService
 
-    public UserRegistrationResponseDto registerUser(UserRegistrationDto userRegistrationDto) {
+    public UserRegistrationResponseDto registerUser(UserRegistrationDto userRegistrationDto) throws NumberParseException {
         User user = userMapper.mapDtoToEntity(userRegistrationDto);
 
         // Hash password and save user
@@ -49,6 +52,9 @@ public class UserService {
 
         // Generate a token for the user
         String token = generateToken(userRegistrationDto);
+        // Generate and send OTP to the user's phone number
+        String phoneNumber = userRegistrationDto.getPhoneNumber();
+        String otp = otpService.generateAndSendOTP(phoneNumber);
 
         // Create the UserRegistrationResponseDto and set the token
         UserRegistrationResponseDto responseDto = new UserRegistrationResponseDto();

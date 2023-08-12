@@ -32,3 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 application.yml
+com/halfacode/logger/
+com/halfacode/mapper/
+com/halfacode/specification/

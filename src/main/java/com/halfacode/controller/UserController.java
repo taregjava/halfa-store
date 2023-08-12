@@ -1,5 +1,6 @@
 package com.halfacode.controller;
 
+import com.google.i18n.phonenumbers.NumberParseException;
 import com.halfacode.dto.LoginDto;
 import com.halfacode.dto.UserDto;
 import com.halfacode.dto.UserRegistrationDto;
@@ -36,7 +37,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserRegistrationResponseDto> registerUser(@RequestBody UserRegistrationDto userRegistrationDto) {
+    public ResponseEntity<UserRegistrationResponseDto> registerUser(@RequestBody UserRegistrationDto userRegistrationDto) throws NumberParseException {
         // Register the user and get the registration response
         UserRegistrationResponseDto registrationResponse = userService.registerUser(userRegistrationDto);
 
