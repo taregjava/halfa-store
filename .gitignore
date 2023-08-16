@@ -34,11 +34,11 @@ build/
 <<<<<<< HEAD
 application.properties
 /application.yml
-/com/halfacode/logger/
+
 
 =======
 application.yml
-/com/halfacode/logger/
-/com/halfacode/mapper/
-/com/halfacode/specification/
+/src/main/java/com/halfacode/logger/
+/src/main/java/com/halfacode/mapper/
+/src/main/java/com/halfacode/specification/
 
