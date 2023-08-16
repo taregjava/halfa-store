@@ -1,11 +1,14 @@
 package com.halfacode.controller;
 
+import com.halfacode.dto.ApiResponse;
 import com.halfacode.dto.CartItemDTO;
-import com.halfacode.entity.Product;
-import com.halfacode.entity.User;
+import com.halfacode.exception.ProductNotFoundException;
+import com.halfacode.exception.UserNotFoundException;
 import com.halfacode.service.CartService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -18,16 +21,16 @@ public class CartController {
 
     @PostMapping("/add")
     public ResponseEntity<String> addToCart(@RequestBody CartItemDTO cartItemDTO) {
-        // Extract the necessary information from the CartItemDTO object
-        Long userId = cartItemDTO.getUserId();
-        Long productId = cartItemDTO.getProductId();
-        int quantity = cartItemDTO.getQuantity();
-
-        // Call the service method to add the item to the cart
-        cartService.addItemToCart(userId, productId, quantity);
-
-        return ResponseEntity.ok("Item added to the cart");
+        cartService.addItemToCart(cartItemDTO);
+        return ResponseEntity.ok("Items added to the cart");
+    }
+    @PostMapping("/update/{cartItemId}")
+    public ApiResponse<String> updateCart(@PathVariable Long cartItemId, @RequestParam int newQuantity) {
+        return cartService.updateCartItem(cartItemId, newQuantity);
     }
 
-    // Implement other API endpoints for updating and removing items from the cart.
+    @DeleteMapping("/remove/{cartItemId}")
+    public ApiResponse<String> removeCart(@PathVariable Long cartItemId) {
+        return cartService.removeCartItem(cartItemId);
+    }
 }

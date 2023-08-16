@@ -1,16 +1,40 @@
 package com.halfacode.mapper;
+import com.halfacode.dto.ApiResponse;
+import com.halfacode.dto.CategoryDTO;
 import com.halfacode.dto.ProductDTO;
 import com.halfacode.entity.Category;
 import com.halfacode.entity.Product;
-import io.micrometer.common.util.StringUtils;
+import com.halfacode.service.CategoryService;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 public class ProductMapper {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    public static ProductDTO buildProductDTO(Product productEntity) {
+        return ProductDTO.builder()
+                .id(productEntity.getId())
+                .name(productEntity.getName())
+                .categoryId(productEntity.getCategoryId())
+                .imageName(productEntity.getImageName())
+                .fullDescription(productEntity.getFullDescription())
+                .createdTime(productEntity.getCreatedTime())
+                .updatedTime(productEntity.getUpdatedTime())
+                .enabled(productEntity.isEnabled())
+                .inStock(productEntity.isInStock())
+                .cost(productEntity.getCost())
+                .price(productEntity.getPrice())
+                .discountPercent(productEntity.getDiscountPercent())
+                .build();
+    }
 
     public Product mapDtoToEntity(ProductDTO dto) {
 
@@ -22,13 +46,13 @@ public class ProductMapper {
         entity.setCategory(new Category(dto.getCategoryId()));
         entity.setImageName(dto.getImageName());
         entity.setFullDescription(dto.getFullDescription());
-        entity.setCreatedTime(dto.getCreatedTime());
-        entity.setUpdatedTime(dto.getUpdatedTime());
-        entity.setEnabled(dto.isEnabled());
-        entity.setInStock(dto.isInStock());
+        entity.setCreatedTime(new Date());
+        entity.setUpdatedTime(new Date());
+        entity.setEnabled(dto.getEnabled());
+        entity.setInStock(dto.getInStock());
         entity.setCost(dto.getCost());
         entity.setPrice(dto.getPrice());
-        entity.setDiscountPercent(dto.getDiscountPercent());
+        entity.setDiscountPercent(dto.getDiscountPercent() != null ? dto.getDiscountPercent().floatValue() : 0.0f);
 
         return entity;
     }
@@ -40,6 +64,7 @@ public class ProductMapper {
     }
     public static  ProductDTO  mapEntityToDto(Product entity) {
 
+        try {
         validateProductEntity(entity);
 
         ProductDTO dto = new ProductDTO();
@@ -57,8 +82,67 @@ public class ProductMapper {
         dto.setDiscountPercent(entity.getDiscountPercent());
 
         return dto;
+        } catch (IllegalArgumentException ex) {
+            // Catch any validation errors and return an appropriate error response
+            throw new RuntimeException("Validation error: " + ex.getMessage());
+
+
+        }
     }
 
+  public Product updateEntity(Product entity, ProductDTO dto) {
+      // Update fields from DTO to entity if they are present in the DTO
+
+      if (dto.getName() != null) {
+          entity.setName(dto.getName());
+      }
+      if (dto.getImageName() != null) {
+          entity.setImageName(dto.getImageName());
+      }
+      if (dto.getFullDescription() != null) {
+          entity.setFullDescription(dto.getFullDescription());
+      }
+      if (dto.getUpdatedTime() != null) {
+          entity.setUpdatedTime(dto.getUpdatedTime());
+      }
+      if (dto.getEnabled() != null) {
+          entity.setEnabled(dto.getEnabled());
+      }
+      if (dto.getInStock() != null) {
+          entity.setInStock(dto.getInStock());
+      }
+      if (dto.getCost() != null) {
+          entity.setCost(dto.getCost());
+      }
+      if (dto.getPrice() != null) {
+          entity.setPrice(dto.getPrice());
+      }
+      if (dto.getDiscountPercent() != null) {
+          entity.setDiscountPercent(dto.getDiscountPercent());
+      }
+
+      // Update category if categoryId is provided
+      if (dto.getCategoryId() != null) {
+          ApiResponse<CategoryDTO> categoryResponse = categoryService.getCategoryById(dto.getCategoryId());
+          if (categoryResponse.isSuccessful()) {
+              CategoryDTO categoryDTO = categoryResponse.getPayload();
+              Category category = convertToCategory(categoryDTO);
+              entity.setCategory(category);
+          } else {
+              // Handle the unsuccessful response (e.g., logging, error handling)
+          }
+      }
+
+      return entity;
+  }
+    public static Category convertToCategory(CategoryDTO categoryDTO) {
+        Category category = new Category();
+        category.setId(categoryDTO.getId());
+        category.setName(categoryDTO.getName());
+        // Set other properties as needed
+
+        return category;
+    }
     private void validateProductDto(ProductDTO dto) {
         Assert.notNull(dto, "ProductDTO must not be null");
         Assert.isTrue(StringUtils.isNotBlank(dto.getName()), "Product name must not be blank");
@@ -80,4 +164,22 @@ public class ProductMapper {
         // Assert.isTrue(entity.getPrice() > 0, "Price must be greater than zero");
         // Assert.isTrue(entity.getDiscountPercent() >= 0 && entity.getDiscountPercent() <= 100, "Discount percent must be between 0 and 100");
     }
+
+    public boolean isEmpty(ProductDTO dto) {
+        return dto == null ||
+                dto.getId() == null &&
+                        dto.getName() == null &&
+                        dto.getCategoryId() == null &&
+                        dto.getImageName() == null &&
+                        dto.getFullDescription() == null &&
+                        dto.getCreatedTime() == null &&
+                        dto.getUpdatedTime() == null &&
+                        dto.getEnabled() == null &&
+                        dto.getInStock() == null &&
+                        dto.getCost() == null &&
+                        dto.getPrice() == null &&
+                        dto.getDiscountPercent() == null &&
+                        (dto.getImageUrls() == null || dto.getImageUrls().isEmpty());
+    }
+
 }

@@ -1,8 +1,11 @@
 package com.halfacode.controller;
 
+import com.halfacode.dto.ApiResponse;
+import com.halfacode.dto.CategoryDTO;
 import com.halfacode.entity.Category;
 import com.halfacode.service.CategoryService;
 import com.halfacode.service.ImageService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,32 +23,32 @@ public class CategoryController {
         this.imageService = imageService;
     }
     @GetMapping
-    public List<Category> getAllCategories() {
+    public ApiResponse<List<CategoryDTO>> getAllCategories() {
         return categoryService.getAllCategories();
     }
 
-   /* @GetMapping("/{id}")
-    public Category getCategoryById(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ApiResponse<CategoryDTO> getCategoryById(@PathVariable Long id) {
         return categoryService.getCategoryById(id);
     }
-*/
-  /*  @PostMapping
-    public Category createCategory(@RequestParam("file") MultipartFile imageFile ,@RequestParam("name") String name) throws IOException {
-        String imageName = imageService.saveFile(name,imageFile);
-        Category category = new Category();
-        category.setName(name);
-        category.setImageName(imageName);
-        return categoryService.createCategory(category);
-    }*/
+    @PostMapping
+    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@ModelAttribute CategoryDTO categoryDTO,
+                                                                   @RequestParam("file") MultipartFile imageFile) {
+        return categoryService.createCategory(categoryDTO, imageFile);
+    }
 
-    @PutMapping("/{id}")
-    public Category updateCategory(@PathVariable Long id, @RequestBody Category category) {
-        category.setId(id);
-        return categoryService.updateCategory(category);
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(@PathVariable Long categoryId,
+                                                                   @RequestParam("imageFile") MultipartFile imageFile,
+                                                                   @ModelAttribute CategoryDTO categoryDTO) {
+        categoryDTO.setId(categoryId);
+        return categoryService.updateCategory(imageFile, categoryDTO);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
+        ApiResponse<Void> response = categoryService.deleteCategory(id);
+
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

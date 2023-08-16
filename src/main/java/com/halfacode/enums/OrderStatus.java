@@ -2,19 +2,83 @@ package com.halfacode.enums;
 
 public enum OrderStatus {
 
-    CREATED("Created"),
-    PROCESSING("Processing"),
-    SHIPPED("Shipped"),
-    DELIVERED("Delivered"),
-    CANCELED("Canceled");
+    NEW {
+        @Override
+        public String defaultDescription() {
+            return "Order was placed by the customer";
+        }
 
-    private final String displayName;
+    },
 
-    OrderStatus(String displayName) {
-        this.displayName = displayName;
-    }
+    CANCELLED {
+        @Override
+        public String defaultDescription() {
+            return "Order was rejected";
+        }
+    },
 
-    public String getDisplayName() {
-        return displayName;
-    }
+    PROCESSING {
+        @Override
+        public String defaultDescription() {
+            return "Order is being processed";
+        }
+    },
+
+    PACKAGED {
+        @Override
+        public String defaultDescription() {
+            return "Products were packaged";
+        }
+    },
+
+    PICKED {
+        @Override
+        public String defaultDescription() {
+            return "Shipper picked the package";
+        }
+    },
+
+    SHIPPING {
+        @Override
+        public String defaultDescription() {
+            return "Shipper is delivering the package";
+        }
+    },
+
+    DELIVERED {
+        @Override
+        public String defaultDescription() {
+            return "Customer received products";
+        }
+    },
+
+    RETURN_REQUESTED {
+        @Override
+        public String defaultDescription() {
+            return "Customer sent request to return purchase";
+        }
+    },
+
+    RETURNED {
+        @Override
+        public String defaultDescription() {
+            return "Products were returned";
+        }
+    },
+
+    PAID {
+        @Override
+        public String defaultDescription() {
+            return "Customer has paid this order";
+        }
+    },
+
+    REFUNDED {
+        @Override
+        public String defaultDescription() {
+            return "Customer has been refunded";
+        }
+    };
+
+    public abstract String defaultDescription();
 }

@@ -6,7 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
@@ -44,8 +46,14 @@ public class Product {
 
     @Column(name = "discount_percent")
     private float discountPercent;
-   /* @ManyToOne
+
+    /* @ManyToMany(mappedBy = "products")
+     private List<CartItem> cartItems = new ArrayList<>();
+ */
+    /* @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;*/
-
+    public Long getCategoryId() {
+        return category != null ? category.getId() : null;
+    }
 }

@@ -1,5 +1,6 @@
 package com.halfacode.controller;
 
+import com.halfacode.dto.ApiResponse;
 import com.halfacode.entity.Role;
 import com.halfacode.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,42 +17,27 @@ public class RoleController {
     private RoleService roleService;
 
     @GetMapping
-    public List<Role> getAllRoles() {
+    public ApiResponse<List<Role>> getAllRoles() {
         return roleService.getAllRoles();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Role> getRoleById(@PathVariable Long id) {
-        Optional<Role> role = roleService.getRoleById(id);
-        if (role.isPresent()) {
-            return ResponseEntity.ok(role.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ApiResponse<Role> getRoleById(@PathVariable Long id) {
+        return roleService.getRoleById(id);
     }
 
     @PostMapping
-    public Role createRole(@RequestBody Role role) {
+    public ApiResponse<Role> createRole(@RequestBody Role role) {
         return roleService.createRole(role);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Role> updateRole(@PathVariable Long id, @RequestBody Role role) {
-        Optional<Role> updatedRole = roleService.updateRole(id, role);
-        if (updatedRole.isPresent()) {
-            return ResponseEntity.ok(updatedRole.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ApiResponse<Role> updateRole(@PathVariable Long id, @RequestBody Role role) {
+        return roleService.updateRole(id, role);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
-        boolean deleted = roleService.deleteRole(id);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ApiResponse<Void> deleteRole(@PathVariable Long id) {
+        return roleService.deleteRole(id);
     }
 }

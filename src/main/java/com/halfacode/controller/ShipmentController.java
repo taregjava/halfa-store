@@ -24,7 +24,7 @@ public class ShipmentController {
     public ResponseEntity<ApiResponse<ShipmentDTO>> createShipment(@RequestBody ShipmentDTO shipment) {
         Shipment saveToDb = shipmentService.createShipment(shipment);
         shipment.setShipmentId(saveToDb.getShipmentId());
-        ApiResponse<ShipmentDTO> response = new ApiResponse<>(HttpStatus.OK.value(), shipment, null);
+        ApiResponse<ShipmentDTO> response = new ApiResponse<>(HttpStatus.OK.value(), shipment, (String) null);
         return ResponseEntity.ok(response);
        // return ResponseEntity.ok("shipment success add ");
     }
@@ -33,7 +33,7 @@ public class ShipmentController {
     public ResponseEntity<ApiResponse<Shipment>> getShipmentById(@PathVariable Long shipmentId) {
         try {
             Shipment shipment= shipmentService.getShipmentById(shipmentId);
-            ApiResponse<Shipment> response =new ApiResponse<>(HttpStatus.OK.value(), shipment, null);
+            ApiResponse<Shipment> response =new ApiResponse<>(HttpStatus.OK.value(), shipment, (String) null);
             return ResponseEntity.ok(response);
 
         } catch (ShipmentNotFoundException ex) {
