@@ -38,7 +38,7 @@ application.properties
 
 =======
 application.yml
-com/halfacode/logger/
-com/halfacode/mapper/
-com/halfacode/specification/
->>>>>>> e6c2b6ba813c340ef0d23aee374bd75b62a7425e
+/com/halfacode/logger/
+/com/halfacode/mapper/
+/com/halfacode/specification/
+
